@@ -1,1 +1,4 @@
 .DS_Store
+camoufox-py/config.yaml
+camoufox-py/cookies/*.json
+cookie*.json

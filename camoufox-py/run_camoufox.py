@@ -35,12 +35,32 @@ def main():
     global_settings = config.get('global_settings', {})
     instance_profiles = config.get('instances', [])
 
+    active_cookies_cfg = config.get('active_cookies')
+    if isinstance(active_cookies_cfg, str):
+        active_cookies = {active_cookies_cfg}
+    elif isinstance(active_cookies_cfg, (list, tuple, set)):
+        active_cookies = {str(item) for item in active_cookies_cfg if item}
+    else:
+        active_cookies = set()
+
+    if active_cookies:
+        logger.info(f"Activating cookies listed in active_cookies: {sorted(active_cookies)}")
+    else:
+        logger.info("active_cookies not set; starting all configured instances")
+
+
     if not instance_profiles:
         logger.error("错误: 在配置文件中没有找到 'instances' 列表。")
         return
 
     processes = []
     for profile in instance_profiles:
+        cookie_name = profile.get('cookie_file')
+        profile_label = profile.get('name') or cookie_name or '<unnamed>'
+        if active_cookies and cookie_name not in active_cookies:
+            logger.info(f"Skipping instance {profile_label} because it is not in active_cookies")
+            continue
+
         final_config = global_settings.copy()
         final_config.update(profile)
 
